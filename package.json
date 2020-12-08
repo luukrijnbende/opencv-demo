@@ -1,0 +1,27 @@
+{
+  "name": "opencv-demo",
+  "version": "0.0.1",
+  "description": "OpenCV demo with face detection",
+  "main": "index.js",
+  "scripts": {
+    "start": "http-server"
+  },
+  "keywords": [
+    "opencv",
+    "facedetection",
+    "face",
+    "detection"
+  ],
+  "author": "Luuk Rijnbende",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/TD092854/opencv-demo.git"
+  },
+  "license": "MIT",
+  "dependencies": {
+    "@opencv.js/wasm": "^4.4.0"
+  },
+  "devDependencies": {
+    "http-server": "^0.12.3"
+  }
+}
