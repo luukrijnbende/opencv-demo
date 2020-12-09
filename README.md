@@ -1,6 +1,9 @@
-# OpenCV Demo with face detection
+# OpenCV Demo
 
-Simple OpenCV demo application in JavaScript that opens the camera and shows the detected faces.
+Simple OpenCV demo application in JavaScript.
+The following demo's are included.
+- Face detection with HAARcascade
+- Circle detection with HoughCircles
 
 ## How to run?
 - npm install

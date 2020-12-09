@@ -3,16 +3,44 @@ html, body {
   margin: 0;
   padding: 0;
   font-family: Arial, Helvetica, sans-serif;
+  color: #ffffff;
   background-color: #000000;
+}
+
+h1 {
+  margin: 32px;
+  font-size: 3rem;
 }
 
 .flex {
   display: flex;
 }
 
+.flex-column {
+  flex-direction: column;
+}
+
 .flex-center {
   align-items: center;
   justify-content: center;
+}
+
+.flex-center-start {
+  align-items: center;
+  justify-content: start;
+}
+
+.link-button {
+  margin-bottom: 16px;
+  padding: 16px 32px;
+  color: #ffffff;
+  background-color: #4d4d4d;
+  text-decoration: none;
+  border-radius: 8px;
+}
+
+.link-button:hover {
+  background-color: #5d5d5d;
 }
 
 .loader {
@@ -22,8 +50,6 @@ html, body {
   bottom: 0;
   left: 0;
   font-size: 2rem;
-  color: #ffffff;
-  background-color: rgba(255, 255, 255, 0.1);
 }
 
 .container {

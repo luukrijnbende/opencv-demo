@@ -3,26 +3,14 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
-    <title>OpenCV demo with face detection</title>
-    <link rel="stylesheet" href="style.css">
+    <title>OpenCV Demo</title>
+    <link rel="stylesheet" href="../style.css">
   </head>
   <body>
-    <div id="loader" class="loader flex flex-center">
-      Loading...
+    <div class="container flex flex-column flex-center-start">
+      <h1>OpenCV Demo</h1>
+      <a href="face-detection" class="link-button">Face detection with HAARcascade</a>
+      <a href="circle-detection" class="link-button">Circle detection with HoughCircles</a>
     </div>
-    <div class="container flex">
-      <canvas id="output"></canvas>
-      <video id="input" class=hidden></video>
-    </div>
-
-    <script src="index.js"></script>
-    <script>
-      const Module = {
-        preRun: [() => {
-          Module.FS_createPreloadedFile("/", "haarcascade_frontalface_default.xml", "classifiers/haarcascade_frontalface_default.xml", true, false);
-        }],
-      };
-    </script>
-    <script async src="node_modules/@opencv.js/wasm/opencv.js" onload="start()"></script>
   </body>
 </html>
