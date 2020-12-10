@@ -6,6 +6,7 @@ const resolution = DEFAULT_RESOLUTION;
 
 prepareOutput(output, resolution);
 
+let openCV = null;
 let stream = null;
 let processingCanvas = null;
 let processingCanvasContext = null;
@@ -15,6 +16,7 @@ let faceClassifier = null;
 let faces = null;
 
 async function start() {
+  openCV = await loadOpenCV();
   stream = await startCamera(resolution);
   await playStream(input, stream);
   startProcessing();
@@ -30,13 +32,13 @@ function startProcessing() {
   processingCanvas.height = resolution.height;
   processingCanvasContext = processingCanvas.getContext("2d");
 
-  srcMat = new cv.Mat(resolution.height, resolution.width, cv.CV_8UC4);
-  grayMat = new cv.Mat(resolution.height, resolution.width, cv.CV_8UC1);
+  srcMat = new openCV.Mat(resolution.height, resolution.width, openCV.CV_8UC4);
+  grayMat = new openCV.Mat(resolution.height, resolution.width, openCV.CV_8UC1);
 
-  faceClassifier = new cv.CascadeClassifier();
+  faceClassifier = new openCV.CascadeClassifier();
   faceClassifier.load("haarcascade_frontalface_default.xml");
 
-  faces = new cv.RectVector();
+  faces = new openCV.RectVector();
 
   requestAnimationFrame(processVideo);
 }
@@ -50,11 +52,11 @@ function processVideo() {
   srcMat.data.set(imageData.data);
 
   // Convert to grayscale.
-  cv.cvtColor(srcMat, grayMat, cv.COLOR_RGBA2GRAY);
+  openCV.cvtColor(srcMat, grayMat, openCV.COLOR_RGBA2GRAY);
 
   // Downsample because we have big image.
-  cv.pyrDown(grayMat, grayMat);
-  cv.pyrDown(grayMat, grayMat);
+  openCV.pyrDown(grayMat, grayMat);
+  openCV.pyrDown(grayMat, grayMat);
 
   // Detect faces.
   faceClassifier.detectMultiScale(grayMat, faces);

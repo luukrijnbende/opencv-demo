@@ -6,6 +6,7 @@ const resolution = DEFAULT_RESOLUTION;
 
 prepareOutput(output, resolution);
 
+let openCV = null;
 let stream = null;
 let processingCanvas = null;
 let processingCanvasContext = null;
@@ -13,6 +14,7 @@ let srcMat = null;
 let grayMat = null;
 
 async function start() {
+  openCV = await loadOpenCV();
   stream = await startCamera(resolution);
   await playStream(input, stream);
   startProcessing();
@@ -26,17 +28,17 @@ function startProcessing() {
   processingCanvas = createProcessingCanvas(resolution);
   processingCanvasContext = processingCanvas.getContext("2d");
 
-  srcMat = new cv.Mat(resolution.height, resolution.width, cv.CV_8UC4);
-  grayMat = new cv.Mat(resolution.height, resolution.width, cv.CV_8UC1);
+  srcMat = new openCV.Mat(resolution.height, resolution.width, openCV.CV_8UC4);
+  grayMat = new openCV.Mat(resolution.height, resolution.width, openCV.CV_8UC1);
 
-  circles = new cv.Mat();
+  circles = new openCV.Mat();
 
   requestAnimationFrame(processVideo);
 }
 
 function processVideo() {
   const begin = Date.now();
-  const circles = new cv.Mat();
+  const circles = new openCV.Mat();
 
   // Prepare the frame.
   processingCanvasContext.drawImage(input, 0, 0, resolution.width, resolution.height);
@@ -44,13 +46,13 @@ function processVideo() {
   srcMat.data.set(imageData.data);
 
   // Convert to grayscale.
-  cv.cvtColor(srcMat, grayMat, cv.COLOR_RGBA2GRAY);
+  openCV.cvtColor(srcMat, grayMat, openCV.COLOR_RGBA2GRAY);
 
   // Downsample because we have big image.
-  cv.pyrDown(grayMat, grayMat);
+  openCV.pyrDown(grayMat, grayMat);
 
   // Blur the image to reduce noise.
-  cv.medianBlur(grayMat, grayMat, 5);
+  openCV.medianBlur(grayMat, grayMat, 5);
 
   // Detect circles.
   // Params:
@@ -61,11 +63,11 @@ function processVideo() {
   //    Circles with the largest accumulator will be returned first.
   // 8: Minimum circle radius.
   // 9: Maximum cirlce radius.
-  cv.HoughCircles(grayMat, circles, cv.HOUGH_GRADIENT, 1, 35, 150, 25, 5, 40);
+  openCV.HoughCircles(grayMat, circles, openCV.HOUGH_GRADIENT, 1, 35, 150, 25, 5, 40);
   
   // Draw.
   outputContext.drawImage(processingCanvas, 0, 0, resolution.width, resolution.height);
-  // cv.imshow(output, grayMat);
+  // openCV.imshow(output, grayMat);
   drawCircles(circles, grayMat.size());
   drawFPS(output, Date.now() - begin);
 
