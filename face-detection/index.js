@@ -74,8 +74,8 @@ function processVideo() {
 //#region Canvas
 
 function drawFaces(detectionSize) {
-  const xRatio = resolution.width/detectionSize.width;
-  const yRatio = resolution.height/detectionSize.height;
+  const xRatio = resolution.width / detectionSize.width;
+  const yRatio = resolution.height / detectionSize.height;
   
   for (let i = 0; i < faces.size(); i++) {
     const face = faces.get(i);

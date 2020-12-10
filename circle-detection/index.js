@@ -67,7 +67,6 @@ function processVideo() {
   
   // Draw.
   outputContext.drawImage(processingCanvas, 0, 0, resolution.width, resolution.height);
-  // openCV.imshow(output, grayMat);
   drawCircles(circles, grayMat.size());
   drawFPS(output, Date.now() - begin);
 
@@ -75,22 +74,38 @@ function processVideo() {
   circles.delete();
 }
 
+function getCircleColor(x, y, radius) {
+  // Create a mask the same size as our input and fill it with zeroes (black).
+  const mask = new openCV.Mat.zeros(resolution.height, resolution.width, openCV.CV_8UC1);
+  // Draw a white circle on the mask.
+  openCV.circle(mask, new openCV.Point(x, y), radius, [255, 255, 255, 1], -1);
+  // Get the mean color of the masked circle in our input.
+  const mean = openCV.mean(srcMat, mask);
+  // Cleanup the mask.
+  mask.delete();
+
+  // Return the RGB values as integer.
+  return [Math.round(mean[0]), Math.round(mean[1]), Math.round(mean[2])];
+}
+
 //#endregion
 
-//#region Canvas
+//#region Canvas 
 
 function drawCircles(circles, detectionSize) {
-  const xRatio = resolution.width/detectionSize.width;
-  const yRatio = resolution.height/detectionSize.height;
+  const xRatio = resolution.width / detectionSize.width;
+  const yRatio = resolution.height / detectionSize.height;
 
-  for (let i = 0; i < circles.cols; i++) {
+  for (let i = 0; i < circles.cols; ++i) {
     const index = i * 3;
-    const x = circles.data32F[index];
-    const y = circles.data32F[index + 1];
-    const radius = circles.data32F[index + 2];
+    const x = circles.data32F[index] * xRatio;
+    const y = circles.data32F[index + 1] * yRatio;
+    const radius = circles.data32F[index + 2] * ((xRatio + yRatio) / 2);
+    const color = getCircleColor(x, y, radius);
 
     outputContext.beginPath();
-    outputContext.arc(x * xRatio, y * yRatio, radius * ((xRatio + yRatio) / 2), 0, Math.PI * 2);
+    outputContext.strokeStyle = `#${color.map(c => c.toString(16).padStart(2, "0")).join("")}`;
+    outputContext.arc(x, y, radius, 0, Math.PI * 2);
     outputContext.stroke();
   }
 }
