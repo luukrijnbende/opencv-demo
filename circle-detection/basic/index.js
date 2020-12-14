@@ -31,14 +31,12 @@ function startProcessing() {
   srcMat = new openCV.Mat(resolution.height, resolution.width, openCV.CV_8UC4);
   grayMat = new openCV.Mat(resolution.height, resolution.width, openCV.CV_8UC1);
 
-  circles = new openCV.Mat();
-
   requestAnimationFrame(processVideo);
 }
 
 function processVideo() {
   const begin = Date.now();
-  const circles = new openCV.Mat();
+  const circleMat = new openCV.Mat();
 
   // Prepare the frame.
   processingCanvasContext.drawImage(input, 0, 0, resolution.width, resolution.height);
@@ -47,10 +45,8 @@ function processVideo() {
 
   // Convert to grayscale.
   openCV.cvtColor(srcMat, grayMat, openCV.COLOR_RGBA2GRAY);
-
   // Downsample because we have big image.
   openCV.pyrDown(grayMat, grayMat);
-
   // Blur the image to reduce noise.
   openCV.medianBlur(grayMat, grayMat, 5);
 
@@ -63,48 +59,34 @@ function processVideo() {
   //    Circles with the largest accumulator will be returned first.
   // 8: Minimum circle radius.
   // 9: Maximum cirlce radius.
-  openCV.HoughCircles(grayMat, circles, openCV.HOUGH_GRADIENT, 1, 35, 150, 25, 5, 40);
+  openCV.HoughCircles(grayMat, circleMat, openCV.HOUGH_GRADIENT, 1, 35, 150, 25, 5, 40);
   
   // Draw.
   outputContext.drawImage(processingCanvas, 0, 0, resolution.width, resolution.height);
-  drawCircles(circles, grayMat.size());
+  drawCircles(circleMat, grayMat.size());
   drawFPS(output, Date.now() - begin);
 
+  // Cleanup.
+  circleMat.delete();
+  // Schedule a new render.
   requestAnimationFrame(processVideo);
-  circles.delete();
-}
-
-function getCircleColor(x, y, radius) {
-  // Create a mask the same size as our input and fill it with zeroes (black).
-  const mask = new openCV.Mat.zeros(resolution.height, resolution.width, openCV.CV_8UC1);
-  // Draw a white circle on the mask.
-  openCV.circle(mask, new openCV.Point(x, y), radius, [255, 255, 255, 1], -1);
-  // Get the mean color of the masked circle in our input.
-  const mean = openCV.mean(srcMat, mask);
-  // Cleanup the mask.
-  mask.delete();
-
-  // Return the RGB values as integer.
-  return [Math.round(mean[0]), Math.round(mean[1]), Math.round(mean[2])];
 }
 
 //#endregion
 
 //#region Canvas 
 
-function drawCircles(circles, detectionSize) {
+function drawCircles(circleMat, detectionSize) {
   const xRatio = resolution.width / detectionSize.width;
   const yRatio = resolution.height / detectionSize.height;
 
-  for (let i = 0; i < circles.cols; ++i) {
+  for (let i = 0; i < circleMat.cols; ++i) {
     const index = i * 3;
-    const x = circles.data32F[index] * xRatio;
-    const y = circles.data32F[index + 1] * yRatio;
-    const radius = circles.data32F[index + 2] * ((xRatio + yRatio) / 2);
-    const color = getCircleColor(x, y, radius);
+    const x = circleMat.data32F[index] * xRatio;
+    const y = circleMat.data32F[index + 1] * yRatio;
+    const radius = circleMat.data32F[index + 2] * ((xRatio + yRatio) / 2);
 
     outputContext.beginPath();
-    outputContext.strokeStyle = `#${color.map(c => c.toString(16).padStart(2, "0")).join("")}`;
     outputContext.arc(x, y, radius, 0, Math.PI * 2);
     outputContext.stroke();
   }

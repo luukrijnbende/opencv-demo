@@ -7,16 +7,12 @@
     <link rel="stylesheet" href="../style.css">
   </head>
   <body>
-    <div id="loader" class="loader flex flex-center">
-      Loading...
+    <div class="container flex flex-column flex-center-start">
+      <h1>Circle detection with HoughCircles</h1>
+      <a href="basic" class="link-button">Basic</a>
+      <a href="with-color" class="link-button">With color</a>
+      <a href="with-2-colors-mask" class="link-button">With 2 colors using mask</a>
+      <a href="with-2-colors-kmeans" class="link-button">With 2 colors using kmeans</a>
     </div>
-    <div class="container flex">
-      <canvas id="output"></canvas>
-      <video id="input" class=hidden></video>
-    </div>
-
-    <script src="../lib/utils.js"></script>
-    <script src="index.js"></script>
-    <script async src="../lib/opencv.js" onload="start()"></script>
   </body>
 </html>
