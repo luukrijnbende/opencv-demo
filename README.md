@@ -27,6 +27,7 @@ It uses OpenCV 4.4.0 available through pip.
 The following demo's are included:
 - Circle detection with HoughCircles
 - Circle detection with HoughCircles with color
+- Circle detection with HoughCircles with 2 colors
 
 For more information and tutorials see:
 https://docs.opencv.org/4.4.0/d6/d00/tutorial_py_root.html
