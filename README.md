@@ -1,6 +1,6 @@
 # OpenCV Demo
 
-Simple OpenCV demo applications with demo's in JavaScript and Python.
+Simple OpenCV demo with demo's in JavaScript and Python.
 
 # JavaScript
 It uses a custom built version of OpenCV 4.5.0 with support for multithreading to improve performance.
@@ -26,6 +26,7 @@ It uses OpenCV 4.4.0 available through pip.
 
 The following demo's are included:
 - Circle detection with HoughCircles
+- Circle detection with HoughCircles with color
 
 For more information and tutorials see:
 https://docs.opencv.org/4.4.0/d6/d00/tutorial_py_root.html

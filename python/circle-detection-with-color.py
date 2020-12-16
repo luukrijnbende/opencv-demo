@@ -55,6 +55,17 @@ def process():
   input.release()
   cv.destroyAllWindows()
 
+def getCircleColor(frame, x: int, y: int, radius: int):
+  # Create a mask the same size as our frame and fill it with zeros (black).
+  mask = np.zeros(frame.shape[:2], np.uint8)
+  # Draw our circle in white on the mask.
+  cv.circle(mask, (x, y), radius, (255, 255, 255, 255), -1)
+  # Get the mean color of the masked circle
+  mean = cv.mean(frame, mask)
+  
+  # Return the BGR values as integer.
+  return (round(mean[0]), round(mean[1]), round(mean[2]))
+
 
 ## DRAWING
 def drawCircles(frame, circles, ratio):
@@ -66,8 +77,10 @@ def drawCircles(frame, circles, ratio):
     x = circle[0] * ratio
     y = circle[1] * ratio
     radius = circle[2] * ratio
+    # Get the color.
+    color = getCircleColor(frame, x, y, radius)
     # Draw the circle on the frame.
-    cv.circle(frame, (x, y), radius, (0, 0, 255), 4)
+    cv.circle(frame, (x, y), radius, color, 4)
 
 
 # Run the main function if the file is run as a script.

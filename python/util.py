@@ -45,6 +45,7 @@ def show(img) -> bool:
 
   return True
 
+
 ## ERRORS
 def errorAndExit(message: str):
   print(message)
