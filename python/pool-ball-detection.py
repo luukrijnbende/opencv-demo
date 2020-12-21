@@ -12,8 +12,8 @@ def process():
   # Get a video stream from the webcam.
   # Play around with this for the correct number,
   # if you only have one webcam, it will be 0.
-  # input = util.openInput(1)
-  input = util.openInput("../potje-pool.mp4")
+  input = util.openInput(0)
+  # input = util.openInput("../potje-pool.mp4")
 
   # Loop for processing the frames.
   while True:
@@ -30,6 +30,8 @@ def process():
     gray = cv.cvtColor(frame, cv.COLOR_BGR2GRAY)
     # gray = cv.pyrDown(gray)
     gray = cv.medianBlur(gray, 5)
+    # thresh, gray = cv.threshold(gray, 0, 255, cv.THRESH_BINARY+cv.THRESH_OTSU)
+    # gray = cv.adaptiveThreshold(gray, 255, cv.ADAPTIVE_THRESH_GAUSSIAN_C, cv.THRESH_MASK, 11, 5)
 
     # Detect circles using HoughCircles.
     # Params:
@@ -42,7 +44,8 @@ def process():
     #             Circles with the largest accumulator will be returned first.
     # 7 (minRadius): Minimum circle radius.
     # 8 (maxRadius): Maximum cirlce radius.
-    circles = cv.HoughCircles(gray, cv.HOUGH_GRADIENT, 1, 20, param1=100, param2=14, minRadius=14, maxRadius=14)
+    # circles = cv.HoughCircles(gray, cv.HOUGH_GRADIENT, 1, 20, param1=100, param2=14, minRadius=14, maxRadius=14)
+    circles = cv.HoughCircles(gray, cv.HOUGH_GRADIENT, 1, 25, param1=50, param2=14, minRadius=14, maxRadius=16)
 
     # Form a 2 color mask.
     thresh, mask = cv.threshold(frame, 160, 255, cv.THRESH_BINARY)
@@ -107,10 +110,12 @@ def getCircleColor(frame, frameMask, circle):
 ## DRAWING
 def drawCircles(frame, circles):
   for circle in circles:
+    # Draw white circle.
+    # cv.circle(frame, (circle["x"], circle["y"]), circle["radius"], (255, 255, 255), 2)
     # Draw the first color on the frame.
-    cv.ellipse(frame, (circle["x"], circle["y"]), (circle["radius"], circle["radius"]), 0, 90, 270, circle["colors"][0], 4)
+    cv.ellipse(frame, (circle["x"], circle["y"]), (circle["radius"] + 8, circle["radius"] + 8), 0, 90, 270, circle["colors"][0], 4)
     # Draw the second color on the frame.
-    cv.ellipse(frame, (circle["x"], circle["y"]), (circle["radius"], circle["radius"]), 0, 270, 450, circle["colors"][1], 4)
+    cv.ellipse(frame, (circle["x"], circle["y"]), (circle["radius"] + 8, circle["radius"] + 8), 0, 270, 450, circle["colors"][1], 4)
 
 
 # Run the main function if the file is run as a script.
