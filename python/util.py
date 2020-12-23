@@ -14,6 +14,10 @@ def getRatio(img1, img2, shouldRound = True):
   else:
     return img1.shape[1] / img2.shape[2]
 
+def resize(src, percentage):
+  # Resize the given source to the given percentage.
+  return cv.resize(src, (0, 0), None, percentage / 100, percentage / 100)
+
 # INPUT
 def openInput(input, props=[]):
   input = cv.VideoCapture(input)
@@ -31,6 +35,10 @@ def openInput(input, props=[]):
 def setWindowName(name: str):
   global WINDOW_NAME
   WINDOW_NAME = name
+  cv.namedWindow(WINDOW_NAME)
+
+def drawTitle(frame, title):
+  cv.putText(frame, title, (60, 40), cv.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 1, cv.LINE_AA)
 
 def drawFPS(frame, duration: int):
   fps = str(round(1000 / duration))
