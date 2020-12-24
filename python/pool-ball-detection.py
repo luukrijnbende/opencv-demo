@@ -1,42 +1,42 @@
 import numpy as np
 import cv2 as cv
+import collections
 import util
 
+# Dictionary for the HSV mask sliders.
 HSV = {
   "lowH": 0,
   "highH": 180,
   "lowS": 0,
-  "highS": 85,
-  "lowV": 38,
-  "highV": 135
+  "highS": 70,
+  "lowV": 45,
+  "highV": 160
 }
 
+# Dictionary for the HoughCircles detection sliders.
 CIRCLE = {
-  "dp": 12,
+  "dp": 10,
   "minDist": 25,
-  "highThresh": 20,
+  "highThresh": 140,
   "accThresh": 14,
   "minRadius": 12,
   "maxRadius": 16
 }
 
-
-def onHSVTrackbar(name, value):
-  HSV[name] = value
-
-def onCircleTrackbar(name, value):
-  CIRCLE[name] = value
+# Size limited collection for the circle buffer.
+detectedCircles = collections.deque(maxlen=15)
 
 def main():
   util.setWindowName("Pool ball detection | OpenCV Demo")
 
+  # Create sliders for the HSV values.
   cv.createTrackbar("lowH", util.WINDOW_NAME, HSV["lowH"], 180, lambda val: onHSVTrackbar("lowH", val))
   cv.createTrackbar("highH", util.WINDOW_NAME, HSV["highH"], 180, lambda val: onHSVTrackbar("highH", val))
   cv.createTrackbar("lowS", util.WINDOW_NAME, HSV["lowS"], 255, lambda val: onHSVTrackbar("lowS", val))
   cv.createTrackbar("highS", util.WINDOW_NAME, HSV["highS"], 255, lambda val: onHSVTrackbar("highS", val))
   cv.createTrackbar("lowV", util.WINDOW_NAME, HSV["lowV"], 255, lambda val: onHSVTrackbar("lowV", val))
   cv.createTrackbar("highV", util.WINDOW_NAME, HSV["highV"], 255, lambda val: onHSVTrackbar("highV", val))
-
+  # Create sliders for the circle detection values.
   cv.createTrackbar("dp", util.WINDOW_NAME, CIRCLE["dp"], 30, lambda val: onCircleTrackbar("dp", val))
   cv.createTrackbar("minDist", util.WINDOW_NAME, CIRCLE["minDist"], 150, lambda val: onCircleTrackbar("minDist", val))
   cv.createTrackbar("highTresh", util.WINDOW_NAME, CIRCLE["highThresh"], 255, lambda val: onCircleTrackbar("highThresh", val))
@@ -44,7 +44,16 @@ def main():
   cv.createTrackbar("minRadius", util.WINDOW_NAME, CIRCLE["minRadius"], 100, lambda val: onCircleTrackbar("minRadius", val))
   cv.createTrackbar("maxRadius", util.WINDOW_NAME, CIRCLE["maxRadius"], 100, lambda val: onCircleTrackbar("maxRadius", val))
 
+  # Start processing.
   process()
+
+# Update a HSV value when a slider is moved.
+def onHSVTrackbar(name, value):
+  HSV[name] = value
+
+# Update a circle detection value when a slider is moved.
+def onCircleTrackbar(name, value):
+  CIRCLE[name] = value
 
 def process():
   # Get a video stream from the webcam.
@@ -73,11 +82,11 @@ def process():
 
     hsv = cv.cvtColor(frame, cv.COLOR_BGR2HSV)
     hsvMask = cv.inRange(hsv, (HSV["lowH"], HSV["lowS"], HSV["lowV"]), (HSV["highH"], HSV["highS"], HSV["highV"]))
-    # hsvMask = cv.medianBlur(hsvMask, 5)
 
     hsvMask = cv.bitwise_not(hsvMask)
     maskedFrame = cv.bitwise_and(frame, frame, mask = hsvMask)
     gray = cv.cvtColor(maskedFrame, cv.COLOR_BGR2GRAY)
+    gray = cv.medianBlur(gray, 5)
 
     # Detect circles using HoughCircles.
     # Params:
@@ -93,16 +102,17 @@ def process():
     # circles = cv.HoughCircles(gray, cv.HOUGH_GRADIENT, 1, 20, param1=100, param2=14, minRadius=14, maxRadius=14)
     # circles = cv.HoughCircles(hsvMask, cv.HOUGH_GRADIENT, 1, 25, param1=50, param2=14, minRadius=14, maxRadius=16)
     circles = cv.HoughCircles(gray, cv.HOUGH_GRADIENT, CIRCLE["dp"] / 10, CIRCLE["minDist"], param1=CIRCLE["highThresh"], param2=CIRCLE["accThresh"], minRadius=CIRCLE["minRadius"], maxRadius=CIRCLE["maxRadius"])
+    detectedCircles.append(getDetectedCircles(circles, util.getRatio(frame, gray)))
 
     # Form a 2 color mask.
     thresh, mask = cv.threshold(frame, 160, 255, cv.THRESH_BINARY)
     mask = cv.cvtColor(mask, cv.COLOR_BGR2GRAY)
     thresh, mask = cv.threshold(mask, 230, 255, cv.THRESH_BINARY)
 
+    circles = getCircles()
+
     # Draw the circles.
-    if not circles is None:
-      # Get the circles.
-      circles = getCircles(circles, util.getRatio(frame, gray))
+    if len(circles) > 0:
       # Get the first color.
       for circle in circles:
         circle["colors"].append(getCircleColor(frame, mask, circle))
@@ -134,10 +144,12 @@ def process():
   input.release()
   cv.destroyAllWindows()
 
-def getCircles(circles, ratio):
+# Transform the detected circles using HoughCircles into an array of x, y and radius tuples.
+def getDetectedCircles(circles, ratio):
+  if circles is None: return []
   # Format and round the detected circles so we can loop.
   circles = np.uint16(np.around(circles))
-  foundCircles = []
+  detectedCircles = []
 
   for circle in circles[0, :]:
     # Get the postion and dimension.
@@ -145,9 +157,34 @@ def getCircles(circles, ratio):
     y = circle[1] * ratio
     radius = circle[2] * ratio
 
-    foundCircles.append({ "x": x, "y": y, "radius": radius, "colors": [] })
+    detectedCircles.append((x, y, radius))
 
-  return foundCircles
+  return detectedCircles
+
+# Get the detected circles based on the values in the circle buffer.
+def getCircles():
+  if len(detectedCircles) != detectedCircles.maxlen: return []
+  groupedCircles = []
+  circles = []
+
+  # Group circles that are within a few pixels of each other.
+  for circle in detectedCircles:
+    for c in circle:
+      existingCircle = next((x for x in groupedCircles if util.inRange(x[0][0], c[0], 10) & util.inRange(x[0][1], c[1], 6)), None)
+
+      if existingCircle is None:
+        groupedCircles.append([c])
+      else:
+        existingCircle.append(c)
+
+  # Get the average of the group and build the circle for drawing.
+  for group in groupedCircles:
+    if len(group) != detectedCircles.maxlen: continue
+    mean = np.mean(group, 0, np.integer)
+
+    circles.append({ "x": mean[0], "y": mean[1], "radius": mean[2], "colors": [] })
+
+  return circles
 
 def getCircleColor(frame, frameMask, circle):
   # Create a mask the same size as our frame and fill it with zeros (black).

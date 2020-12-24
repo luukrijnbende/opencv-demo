@@ -18,6 +18,9 @@ def resize(src, percentage):
   # Resize the given source to the given percentage.
   return cv.resize(src, (0, 0), None, percentage / 100, percentage / 100)
 
+def inRange(val1: int, val2: int, range: int) -> bool:
+  return val1 + range >= val2 and val1 - range <= val2
+
 # INPUT
 def openInput(input, props=[]):
   input = cv.VideoCapture(input)
